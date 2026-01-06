@@ -5,7 +5,6 @@ Streamlit application for MetaGPT chat interface.
 Provides a user-friendly chat interface for interacting with MetaGPT.
 """
 import asyncio
-from typing import Optional
 
 import streamlit as st
 
