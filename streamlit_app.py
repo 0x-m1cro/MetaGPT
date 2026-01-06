@@ -11,6 +11,9 @@ import streamlit as st
 from metagpt.llm import LLM
 from metagpt.logs import logger
 
+# Default system prompt
+DEFAULT_SYSTEM_PROMPT = "You are a helpful AI assistant."
+
 
 def init_session_state():
     """Initialize session state variables."""
@@ -18,21 +21,24 @@ def init_session_state():
         st.session_state.messages = []
     if "llm" not in st.session_state:
         st.session_state.llm = None
+    if "system_prompt" not in st.session_state:
+        st.session_state.system_prompt = DEFAULT_SYSTEM_PROMPT
 
 
-async def get_llm_response(prompt: str, llm: LLM) -> str:
+async def get_llm_response(prompt: str, llm: LLM, system_prompt: str) -> str:
     """
     Get response from LLM asynchronously.
     
     Args:
         prompt: User input prompt
         llm: LLM instance
+        system_prompt: System prompt for the LLM
         
     Returns:
         Response string from LLM
     """
     try:
-        response = await llm.aask(prompt, system_msgs=["You are a helpful AI assistant."])
+        response = await llm.aask(prompt, system_msgs=[system_prompt])
         return response
     except Exception as e:
         logger.error(f"Error getting LLM response: {e}")
@@ -77,9 +83,9 @@ def main():
             
             with st.spinner("Thinking..."):
                 try:
-                    # Run async function in event loop
+                    # Run async function - asyncio.run() is the standard approach in Streamlit
                     response = asyncio.run(
-                        get_llm_response(prompt, st.session_state.llm)
+                        get_llm_response(prompt, st.session_state.llm, st.session_state.system_prompt)
                     )
                     message_placeholder.markdown(response)
                 except Exception as e:
@@ -94,6 +100,18 @@ def main():
     # Sidebar with additional options
     with st.sidebar:
         st.header("Options")
+        
+        # System prompt configuration
+        new_system_prompt = st.text_area(
+            "System Prompt",
+            value=st.session_state.system_prompt,
+            help="Customize how the AI assistant behaves",
+        )
+        if new_system_prompt != st.session_state.system_prompt:
+            st.session_state.system_prompt = new_system_prompt
+            st.success("System prompt updated!")
+        
+        st.markdown("---")
         
         if st.button("Clear Chat History"):
             st.session_state.messages = []
