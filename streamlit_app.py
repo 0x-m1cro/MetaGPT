@@ -36,7 +36,7 @@ MODEL_CONFIGS = {
     },
     "Azure OpenAI": {
         "api_type": LLMType.AZURE,
-        "base_url": "https://YOUR_RESOURCE_NAME.openai.azure.com",
+        "base_url": "https://your-resource.openai.azure.com",
         "models": ["gpt-4", "gpt-35-turbo"],
         "default_model": "gpt-4",
         "requires_api_version": True,
@@ -167,9 +167,12 @@ def main():
         )
         
         # Base URL input
+        default_base_url = provider_config["base_url"]
+        current_base_url = st.session_state.base_url if st.session_state.base_url else default_base_url
+        
         base_url = st.text_input(
             "Base URL",
-            value=st.session_state.base_url if st.session_state.base_url else provider_config["base_url"],
+            value=current_base_url,
             help="API endpoint URL",
         )
         
@@ -253,7 +256,9 @@ def main():
             
             with st.spinner("Thinking..."):
                 try:
-                    # Run async function - asyncio.run() is the standard approach in Streamlit
+                    # Run async function using asyncio.run()
+                    # This is the standard approach in Streamlit as each script execution is isolated
+                    # and Streamlit doesn't maintain a persistent event loop across reruns
                     response = asyncio.run(
                         get_llm_response(prompt, st.session_state.llm, st.session_state.system_prompt)
                     )
